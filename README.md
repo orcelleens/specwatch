@@ -9,6 +9,17 @@ vendor publishing.
 Built for the "Self-Maintaining APIs" problem in [YC's Requests for Startups](https://www.ycombinator.com/rfs).
 Solo-run by design: ~$20/mo infra, no queue service, no vendor cooperation required.
 
+## AI Integration Guide
+
+SpecWatch is designed to work seamlessly with AI assistants. AI models can help users:
+- Find OpenAPI specs for their dependencies
+- Validate spec URLs before submission
+- Configure environment variables correctly
+- Troubleshoot common setup issues
+- Interpret alerts and suggest remediation steps
+
+See [AI_INTEGRATION_GUIDE.md](AI_INTEGRATION_GUIDE.md) for detailed guidance on how AI can assist with SpecWatch setup and usage.
+
 ## How it works
 
 ```

@@ -1,14 +1,29 @@
 import Link from "next/link";
+import { auth } from "@clerk/nextjs/server";
 import { UserButton } from "@clerk/nextjs";
 import { LayoutDashboard, Boxes, Settings } from "lucide-react";
 
-const NAV = [
-  { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
-  { href: "/dashboard/apis", label: "My APIs", icon: Boxes },
-  { href: "/dashboard/settings", label: "Settings", icon: Settings },
-];
+export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const { userId } = await auth();
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  // Define base navigation items
+  const baseNav = [
+    { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
+    { href: "/dashboard/apis", label: "My APIs", icon: Boxes },
+    { href: "/dashboard/settings", label: "Settings", icon: Settings },
+  ];
+
+  // Admin navigation items (only shown to admins)
+  const adminNav = [
+    { href: "/dashboard/admin", label: "Vendor Requests", icon: LayoutDashboard },
+  ];
+
+  // Check if user is admin (simplified approach - in production, use proper role checking)
+  const isAdmin = userId && process.env.ADMIN_USER_IDS?.includes(userId);
+
+  // Combine nav items
+  const navItems = isAdmin ? [...baseNav, ...adminNav] : baseNav;
+
   return (
     <div className="flex min-h-screen">
       <aside className="hidden w-56 shrink-0 border-r border-zinc-800 bg-zinc-950 md:flex md:flex-col">
@@ -18,7 +33,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </Link>
         </div>
         <nav className="flex flex-col gap-1 p-3">
-          {NAV.map((item) => (
+          {navItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
@@ -39,7 +54,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             Spec<span className="text-orange-500">Watch</span>
           </Link>
           <nav className="ml-auto flex gap-3 text-sm text-zinc-400">
-            {NAV.map((item) => (
+            {navItems.map((item) => (
               <Link key={item.href} href={item.href}>
                 {item.label}
               </Link>

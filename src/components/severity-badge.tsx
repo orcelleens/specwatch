@@ -7,13 +7,14 @@ const STYLES: Record<Severity, { label: string; className: string }> = {
   docs: { label: "Docs", className: "bg-zinc-800 text-zinc-400 border-zinc-700" },
 };
 
-export function SeverityBadge({ severity }: { severity: Severity }) {
+export function SeverityBadge({ severity, className }: { severity: Severity; className?: string }) {
   const style = STYLES[severity] ?? STYLES.docs;
   return (
     <span
-      className={`inline-block rounded border px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${style.className}`}
+      className={`inline-flex items-center rounded border px-2.5 py-0.5 text-xs font-medium uppercase tracking-wider gap-1.5 ${style.className} ${className ?? ""}`}
     >
-      {style.label}
+      <div className={`h-3 w-3 ${style.className.split(" ")[0]} rounded`} />
+      <span>{style.label}</span>
     </span>
   );
 }

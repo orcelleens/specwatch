@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
-import { AlertTriangle, Plus } from "lucide-react";
+import { AlertTriangle, Plus, RefreshCw } from "lucide-react";
 import { serviceClient } from "@/modules/db/client";
 import { ensureSubscriptionRow, FREE_VENDOR_LIMIT, getPlan } from "@/modules/billing/plan";
-import { setNotifyAllAction, setSlackWebhookAction, toggleWatchAction } from "@/modules/watchlist/actions";
 import { ChangeCard, type ChangeCardData } from "@/components/change-card";
+import { refreshAction } from "./actions";
 
 interface WatchRow {
   vendor_id: string;
@@ -55,8 +55,10 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-8">
       <header className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Your watched APIs</h1>
+        <div className="flex-1 min-w-0">
+          <h1 className="text-2xl font-bold tracking-tight">
+            Your watched APIs
+          </h1>
           <p className="mt-1 text-sm text-zinc-500">
             {watched.length} watched
             {plan === "free" ? ` — free plan covers up to ${FREE_VENDOR_LIMIT}` : ""} ·{" "}
@@ -65,86 +67,114 @@ export default async function DashboardPage() {
             </Link>
           </p>
         </div>
-        <span className="rounded-full border border-zinc-700 px-3 py-1 text-xs font-medium uppercase tracking-wider text-zinc-400">
-          {plan} plan
-        </span>
+        <div className="flex items-center gap-3">
+          <span className="rounded-full border border-zinc-700 px-3 py-1 text-xs font-medium uppercase tracking-wider text-zinc-400">
+            {plan} plan
+          </span>
+          <form action={refreshAction}>
+            <button
+              type="submit"
+              className="rounded-md border border-zinc-700 px-3 py-1.5 text-xs font-medium text-zinc-300 hover:border-zinc-600 hover:text-zinc-200 transition-colors duration-200"
+            >
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Refresh
+            </button>
+          </form>
+        </div>
       </header>
 
       {watched.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-zinc-700 p-8 text-center">
-          <Plus className="mx-auto mb-2 text-zinc-600" size={24} />
-          <p className="text-sm text-zinc-400">You are not watching any APIs yet.</p>
-          <Link
-            href="/dashboard/apis"
-            className="mt-3 inline-block rounded-md bg-orange-500 px-4 py-2 text-sm font-semibold text-zinc-950 hover:bg-orange-400"
-          >
-            Pick your first API
-          </Link>
+        <div className="flex flex-col items-center justify-center py-12">
+          <div className="rounded-lg border border-dashed border-zinc-700 p-8 text-center">
+            <Plus className="mx-auto mb-4 text-zinc-600" size={32} />
+            <p className="text-sm text-zinc-500">You are not watching any APIs yet.</p>
+            <Link
+              href="/dashboard/apis"
+              className="mt-4 inline-flex items-center gap-2 rounded-md bg-orange-500 px-4 py-2 text-sm font-semibold text-zinc-950 hover:bg-orange-400 transition-colors duration-200"
+            >
+              Pick your first API
+            </Link>
+          </div>
         </div>
       ) : (
-        <div className="space-y-3">
-          {watched.map((row) => (
-            <div key={row.vendor_id} className="rounded-lg border border-zinc-800 bg-zinc-900/60 p-4">
-              <div className="flex flex-wrap items-center gap-3">
-                <Link
-                  href={`/vendors/${row.vendors[0].slug}`}
-                  className="font-semibold text-zinc-100 hover:text-orange-400"
-                >
-                  {row.vendors[0].name}
-                </Link>
-                {row.vendors[0].last_error ? (
-                  <span className="flex items-center gap-1 text-xs text-red-400">
-                    <AlertTriangle size={12} /> last poll failed
-                  </span>
-                ) : null}
-                <form action={toggleWatchAction} className="ml-auto">
-                  <input type="hidden" name="vendor_id" value={row.vendor_id} />
-                  <button
-                    type="submit"
-                    className="rounded-md border border-zinc-700 px-2.5 py-1 text-xs text-zinc-400 transition-colors hover:border-red-800 hover:text-red-300"
-                  >
-                    Unwatch
-                  </button>
-                </form>
+        <div className="space-y-6">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {watched.map((row) => (
+              <div key={row.vendor_id} className="group">
+                <div className="relative overflow-hidden">
+                  <div className="absolute inset-0 bg-[linear-gradient(to_bottom,transparent,rgba(15,23,42,0.05))] pointer-events-none" />
+                  <div className="relative z-10">
+                    <div className="flex flex-wrap items-center gap-3 mb-4 py-3 px-4 bg-zinc-900/50 rounded-lg">
+                      <Link
+                        href={`/vendors/${row.vendors[0].slug}`}
+                        className="block font-semibold text-zinc-100 hover:text-orange-400 transition-colors duration-200 group-hover:text-orange-300"
+                      >
+                        {row.vendors[0].name}
+                      </Link>
+                      {row.vendors[0].last_error ? (
+                        <span className="flex items-center gap-2 text-xs text-red-400">
+                          <AlertTriangle className="h-4 w-4" /> last poll failed
+                        </span>
+                      ) : null}
+                      <div className="ml-auto flex items-center gap-2">
+                        <button
+                          disabled
+                          className="rounded-md border border-zinc-700 px-2.5 py-1 text-xs text-zinc-400 hover:border-zinc-600 hover:text-zinc-200 transition-colors duration-200"
+                        >
+                          Poll now
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2 text-sm text-zinc-500">
+                        <span className="font-medium">Alerts:</span>
+                        <span className="ml-auto">
+                          {row.notify_all ? "Every change" : "Breaking + deprecations only"}
+                        </span>
+                      </div>
+                      {row.slack_webhook_url ? (
+                        <div className="flex items-center gap-2 text-sm text-zinc-500">
+                          <span className="font-medium">Slack:</span>
+                          <span className="ml-auto text-xs truncate max-w-[150px]">
+                            {row.slack_webhook_url}
+                          </span>
+                        </div>
+                      ) : null}
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div className="mt-3 flex flex-wrap items-center gap-4 text-xs text-zinc-500">
-                <form action={setNotifyAllAction} className="flex items-center gap-2">
-                  <input type="hidden" name="vendor_id" value={row.vendor_id} />
-                  <input type="hidden" name="value" value={row.notify_all ? "false" : "true"} />
-                  <button type="submit" className="underline-offset-2 hover:text-zinc-300 hover:underline">
-                    {row.notify_all ? "Alerting on every change" : "Alerting on breaking + deprecations only"}
-                  </button>
-                </form>
-                <form action={setSlackWebhookAction} className="flex flex-1 items-center gap-2">
-                  <input type="hidden" name="vendor_id" value={row.vendor_id} />
-                  <input
-                    type="url"
-                    name="slack_webhook_url"
-                    defaultValue={row.slack_webhook_url ?? ""}
-                    placeholder="https://hooks.slack.com/services/…"
-                    className="min-w-0 flex-1 rounded-md border border-zinc-700 bg-zinc-950 px-2.5 py-1.5 text-xs text-zinc-300 placeholder:text-zinc-600 focus:border-orange-500 focus:outline-none"
-                  />
-                  <button type="submit" className="text-orange-400 hover:text-orange-300">
-                    save
-                  </button>
-                </form>
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       )}
 
       <section>
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-zinc-500">
-          Latest changes on your APIs
-        </h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-500">
+            Latest changes on your APIs
+          </h2>
+          {changes.length > 0 && (
+            <Link
+              href="/dashboard/changes"
+              className="text-xs text-zinc-400 hover:text-zinc-300 underline-offset-2 hover:underline"
+            >
+              View all
+            </Link>
+          )}
+        </div>
         {changes.length === 0 ? (
-          <p className="rounded-lg border border-zinc-800 bg-zinc-900/40 p-6 text-sm text-zinc-500">
-            Nothing detected yet. The engine polls each API on a schedule — changes land here and
-            in your inbox within minutes.
-          </p>
+          <div className="mt-6 flex flex-col items-center justify-center py-8">
+            <div className="rounded-lg border border-zinc-800 bg-zinc-900/40 p-6 text-center">
+              <p className="text-sm text-zinc-500">
+                Nothing detected yet. The engine polls each API on a schedule — changes land here and
+                in your inbox within minutes.
+              </p>
+            </div>
+          </div>
         ) : (
-          <div className="space-y-2.5">
+          <div className="space-y-4">
             {changes.map((change) => (
               <ChangeCard
                 key={change.id}

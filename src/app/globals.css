@@ -3,11 +3,30 @@
 :root {
   --background: #09090b;
   --foreground: #fafafa;
+  --primary: #f97316;
+  --primary-foreground: #ffffff;
+  --secondary: #64748b;
+  --accent: #0ea5e9;
+  --muted: #334155;
+  --border: #1e293b;
+  --ring: #f97316;
+  --radius: 0.5rem;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-accent: var(--accent);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -18,13 +37,89 @@ body {
   font-family: var(--font-geist-sans), system-ui, sans-serif;
 }
 
+/* Enhanced typography */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+h1 {
+  font-size: 2.25rem;
+  letter-spacing: -0.025em;
+}
+
+h2 {
+  font-size: 1.875rem;
+  letter-spacing: -0.02em;
+}
+
+h3 {
+  font-size: 1.5rem;
+  letter-spacing: -0.015em;
+}
+
+/* Improved form elements */
+input, textarea, select {
+  @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2;
+}
+
+/* Enhanced button styles */
+button {
+  @apply transition-all duration-200 ease-in-out;
+}
+
+button:hover {
+  @apply transform scale-[1.02];
+}
+
+button:active {
+  @apply transform scale-[0.98];
+}
+
+/* Card and container improvements */
+.card {
+  @apply bg-zinc-900/50 backdrop-blur-sm border border-zinc-800/50;
+}
+
+.card-hover {
+  @apply transition-all duration-300 hover:bg-zinc-900/60 hover:border-zinc-700/60;
+}
+
+/* Loading and empty state enhancements */
+.empty-state {
+  @apply text-center py-12;
+}
+
+.empty-state-icon {
+  @apply mx-auto h-12 w-12 text-muted group-hover:text-primary;
+}
+
+.empty-state-title {
+  @apply mt-4 text-lg font-semibold text-foreground;
+}
+
+.empty-state-description {
+  @apply mt-2 text-sm text-muted max-w-xl mx-auto;
+}
+
+/* Animation refinements */
 @keyframes levitate {
   0%,
   100% {
     transform: translateY(0px);
   }
   50% {
-    transform: translateY(-10px);
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
   }
 }
 
@@ -46,4 +141,58 @@ body {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* Responsive design enhancements */
+@media (min-width: 640px) {
+  h1 {
+    font-size: 2.5rem;
+  }
+
+  h2 {
+    font-size: 2rem;
+  }
+}
+
+@media (min-width: 768px) {
+  h1 {
+    font-size: 2.75rem;
+  }
+
+  h2 {
+    font-size: 2.25rem;
+  }
+}
+
+/* Dark mode refinements */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #09090b;
+    --foreground: #fafafa;
+    --muted: #475569;
+    --border: #1e293b;
+  }
+}
+
+/* Focus visible enhancements */
+:focus-visible {
+  @outline-offset: 2px;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-zinc-950/50;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-zinc-600/50 rounded-full hover:bg-zinc-600/70;
+}
+
+::-webkit-scrollbar-corner {
+  @apply bg-transparent;
 }
