@@ -9,9 +9,5 @@ export default clerkMiddleware(async (auth, req) => {
 });
 
 export const config = {
-  matcher: [
-    "/((?!.*\\..*|_next|api/cron|api/trpc).*)",
-    "/",
-    "/api/trpc(.*)",
-  ],
+  matcher: ["/dashboard/:path*", "/settings/:path*"],
 };
