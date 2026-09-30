@@ -1,6 +1,5 @@
 import type { ClassifiedChange, ChangelogEntry, VendorConfig } from "@/engine/types";
 import { serviceClient } from "@/modules/db/client";
-import { headerRepairFetch } from "@/lib/identity-fetch";
 import { getPlan } from "@/modules/billing/plan";
 import { alertEmail, sendEmail } from "./email";
 import { sendSlack } from "./slack";
@@ -11,26 +10,11 @@ interface WatcherRow {
   slack_webhook_url: string | null;
 }
 
-// Clerk's backend SDK captures fetch at module load, so its responses hit the
-// same Next-runtime corruption as Supabase/Groq (compressed body, stripped
-// headers) with no injection point to fix. Fetch the one endpoint the engine
-// needs over raw REST with the repaired fetch instead.
 export async function primaryEmail(userId: string): Promise<string | null> {
-  const key = process.env.CLERK_SECRET_KEY;
-  if (!key) return null;
-  const res = await headerRepairFetch(
-    `https://api.clerk.com/v1/users/${encodeURIComponent(userId)}`,
-    { headers: { authorization: `Bearer ${key}` } },
-  );
-  if (!res.ok) return null;
-  const user = (await res.json()) as {
-    primary_email_address_id?: string | null;
-    email_addresses?: { id: string; email_address: string }[];
-  };
-  const primary = user.email_addresses?.find(
-    (address) => address.id === user.primary_email_address_id,
-  );
-  return primary?.email_address ?? user.email_addresses?.[0]?.email_address ?? null;
+  const db = serviceClient();
+  const { data, error } = await db.auth.admin.getUserById(userId);
+  if (error || !data.user) return null;
+  return data.user.email ?? null;
 }
 
 /**

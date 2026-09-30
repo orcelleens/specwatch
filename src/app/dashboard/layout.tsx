@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { auth } from "@clerk/nextjs/server";
-import { UserButton } from "@clerk/nextjs";
-import { LayoutDashboard, Boxes, Settings } from "lucide-react";
+import { getUser } from "@/lib/supabase-server";
+import { LayoutDashboard, Boxes, Settings, LogOut } from "lucide-react";
+import { signOutAction } from "./actions";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const { userId } = await auth();
+  const user = await getUser();
 
   // Define base navigation items
   const baseNav = [
@@ -19,7 +19,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   ];
 
   // Check if user is admin (simplified approach - in production, use proper role checking)
-  const isAdmin = userId && process.env.ADMIN_USER_IDS?.includes(userId);
+  const isAdmin = user && process.env.ADMIN_USER_IDS?.includes(user.id);
 
   // Combine nav items
   const navItems = isAdmin ? [...baseNav, ...adminNav] : baseNav;
@@ -45,7 +45,17 @@ export default async function DashboardLayout({ children }: { children: React.Re
           ))}
         </nav>
         <div className="mt-auto p-3">
-          <UserButton />
+          {user ? (
+            <form action={signOutAction}>
+              <button
+                type="submit"
+                className="w-full flex items-center gap-2.5 rounded-md px-3 py-2 text-sm text-zinc-400 transition-colors hover:bg-zinc-900 hover:text-zinc-100"
+              >
+                <LogOut size={16} />
+                Sign out
+              </button>
+            </form>
+          ) : null}
         </div>
       </aside>
       <main className="flex-1 overflow-x-hidden">

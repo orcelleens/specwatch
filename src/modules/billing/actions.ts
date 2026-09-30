@@ -1,33 +1,25 @@
 "use server";
 
-import { auth, clerkClient } from "@clerk/nextjs/server";
+import { getUser } from "@/lib/supabase-server";
 import { redirect } from "next/navigation";
 import { createCheckoutSession, createPortalSession } from "./polar";
 import { ensureSubscriptionRow } from "./plan";
 
 export async function upgradeAction(formData: FormData): Promise<void> {
-  const { userId } = await auth();
-  if (!userId) throw new Error("unauthorized");
+  const user = await getUser();
+  if (!user) throw new Error("unauthorized");
   const plan = formData.get("plan") === "team" ? "team" : "pro";
 
-  let email: string | undefined;
-  try {
-    const client = await clerkClient();
-    const user = await client.users.getUser(userId);
-    email = user.emailAddresses.find((address) => address.id === user.primaryEmailAddressId)
-      ?.emailAddress;
-  } catch {
-    // optional
-  }
+  const email = user.email;
 
-  await ensureSubscriptionRow(userId);
-  const url = await createCheckoutSession({ userId, email, plan });
+  await ensureSubscriptionRow(user.id);
+  const url = await createCheckoutSession({ userId: user.id, email, plan });
   redirect(url);
 }
 
 export async function portalAction(): Promise<void> {
-  const { userId } = await auth();
-  if (!userId) throw new Error("unauthorized");
-  const url = await createPortalSession({ userId });
+  const user = await getUser();
+  if (!user) throw new Error("unauthorized");
+  const url = await createPortalSession({ userId: user.id });
   redirect(url);
 }

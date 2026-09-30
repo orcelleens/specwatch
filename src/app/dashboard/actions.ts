@@ -1,9 +1,16 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { createSupabaseServerClient } from "@/lib/supabase-server";
 
 export async function refreshAction() {
   revalidatePath("/dashboard");
+}
+
+export async function signOutAction() {
+  const supabase = await createSupabaseServerClient();
+  await supabase.auth.signOut();
+  revalidatePath("/", "layout");
 }
 
 export async function approveAction(formData: FormData) {

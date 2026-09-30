@@ -1,4 +1,4 @@
-import { auth } from "@clerk/nextjs/server";
+import { getUser } from "@/lib/supabase-server";
 import { Check, Sparkles, TrendingUp, ArrowRight } from "lucide-react";
 import { getPlan } from "@/modules/billing/plan";
 import { portalAction, upgradeAction } from "@/modules/billing/actions";
@@ -32,9 +32,9 @@ export default async function SettingsPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const { userId } = await auth();
-  if (!userId) return null;
-  const plan = await getPlan(userId);
+  const user = await getUser();
+  if (!user) return null;
+  const plan = await getPlan(user.id);
   const params = await searchParams;
   const upgraded = params.upgraded === "1";
 

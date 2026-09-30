@@ -1,1 +1,3 @@
 @AGENTS.md
+
+ i want you to always telle me what you are going to be doing and ask me if it is the wright thing to do after thinking of it youself but yes you seem to be in the wright path and also update that file that contian the plan you where floowing and we will continue with that one the auth is fix and deployment passe.so let go and stay /improve-codebase-architecture and be /swarm-orchestration to go faster and when we need to use hte browser use the intergrated browser of vscode do not spone a chrome browser

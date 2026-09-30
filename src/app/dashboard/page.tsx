@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { auth } from "@clerk/nextjs/server";
+import { getUser } from "@/lib/supabase-server";
 import { AlertTriangle, Plus, RefreshCw } from "lucide-react";
 import { serviceClient } from "@/modules/db/client";
 import { ensureSubscriptionRow, FREE_VENDOR_LIMIT, getPlan } from "@/modules/billing/plan";
@@ -27,16 +27,16 @@ interface ChangeRow {
 export const metadata = { title: "Overview" };
 
 export default async function DashboardPage() {
-  const { userId } = await auth();
-  if (!userId) return null;
+  const user = await getUser();
+  if (!user) return null;
   const db = serviceClient();
-  await ensureSubscriptionRow(userId);
-  const plan = await getPlan(userId);
+  await ensureSubscriptionRow(user.id);
+  const plan = await getPlan(user.id);
 
   const { data: watchRows } = await db
     .from("watchlist")
     .select("vendor_id, notify_all, slack_webhook_url, vendors(slug, name, last_error)")
-    .eq("user_id", userId)
+    .eq("user_id", user.id)
     .order("created_at", { ascending: true });
   const watched = (watchRows ?? []) as WatchRow[];
   const vendorIds = watched.map((row) => row.vendor_id);
@@ -99,19 +99,38 @@ export default async function DashboardPage() {
       ) : (
         <div className="space-y-6">
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {watched.map((row) => (
-              <div key={row.vendor_id} className="group">
-                <div className="relative overflow-hidden">
-                  <div className="absolute inset-0 bg-[linear-gradient(to_bottom,transparent,rgba(15,23,42,0.05))] pointer-events-none" />
-                  <div className="relative z-10">
-                    <div className="flex flex-wrap items-center gap-3 mb-4 py-3 px-4 bg-zinc-900/50 rounded-lg">
-                      <Link
-                        href={`/vendors/${row.vendors[0].slug}`}
-                        className="block font-semibold text-zinc-100 hover:text-orange-400 transition-colors duration-200 group-hover:text-orange-300"
-                      >
-                        {row.vendors[0].name}
-                      </Link>
-                      {row.vendors[0].last_error ? (
+            {watched.map((row) => {
+              const vendor = row.vendors[0];
+              if (!vendor) {
+                return (
+                  <div key={row.vendor_id} className="group">
+                    <div className="relative overflow-hidden">
+                      <div className="absolute inset-0 bg-[linear-gradient(to_bottom,transparent,rgba(15,23,42,0.05))] pointer-events-none" />
+                      <div className="relative z-10">
+                        <div className="flex flex-wrap items-center gap-3 mb-4 py-3 px-4 bg-zinc-900/50 rounded-lg">
+                          <span className="block font-semibold text-zinc-100">Unknown API (not configured)</span>
+                          <span className="flex items-center gap-2 text-xs text-red-400">
+                            <AlertTriangle className="h-4 w-4" /> vendor missing
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
+              return (
+                <div key={row.vendor_id} className="group">
+                  <div className="relative overflow-hidden">
+                    <div className="absolute inset-0 bg-[linear-gradient(to_bottom,transparent,rgba(15,23,42,0.05))] pointer-events-none" />
+                    <div className="relative z-10">
+                      <div className="flex flex-wrap items-center gap-3 mb-4 py-3 px-4 bg-zinc-900/50 rounded-lg">
+                        <Link
+                          href={`/vendors/${vendor.slug}`}
+                          className="block font-semibold text-zinc-100 hover:text-orange-400 transition-colors duration-200 group-hover:text-orange-300"
+                        >
+                          {vendor.name}
+                        </Link>
+                        {vendor.last_error ? (
                         <span className="flex items-center gap-2 text-xs text-red-400">
                           <AlertTriangle className="h-4 w-4" /> last poll failed
                         </span>
@@ -145,7 +164,8 @@ export default async function DashboardPage() {
                   </div>
                 </div>
               </div>
-            ))}
+            )
+          })}
           </div>
         </div>
       )}
@@ -175,22 +195,26 @@ export default async function DashboardPage() {
           </div>
         ) : (
           <div className="space-y-4">
-            {changes.map((change) => (
-              <ChangeCard
-                key={change.id}
-                change={{
-                  id: change.id,
-                  vendorSlug: change.vendors[0].slug,
-                  vendorName: change.vendors[0].name,
-                  jsonPath: change.json_path,
-                  kind: change.kind,
-                  severity: change.severity,
-                  summary: change.summary,
-                  impactHint: change.impact_hint,
-                  detectedAt: change.detected_at,
-                }}
-              />
-            ))}
+            {changes.map((change) => {
+              const cv = change.vendors[0];
+              if (!cv) return null;
+              return (
+                <ChangeCard
+                  key={change.id}
+                  change={{
+                    id: change.id,
+                    vendorSlug: cv.slug,
+                    vendorName: cv.name,
+                    jsonPath: change.json_path,
+                    kind: change.kind,
+                    severity: change.severity,
+                    summary: change.summary,
+                    impactHint: change.impact_hint,
+                    detectedAt: change.detected_at,
+                  }}
+                />
+              );
+            })}
           </div>
         )}
       </section>

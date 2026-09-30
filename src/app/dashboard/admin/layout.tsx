@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { UserButton } from "@clerk/nextjs";
-import { LayoutDashboard, Boxes, Settings, Activity } from "lucide-react";
+import { getUser } from "@/lib/supabase-server";
+import { signOutAction } from "@/app/dashboard/actions";
+import { LayoutDashboard, Boxes, Settings, Activity, LogOut } from "lucide-react";
 
 const ADMIN_NAV = [
   { href: "/dashboard/admin", label: "Vendor Requests", icon: LayoutDashboard },
@@ -9,7 +10,9 @@ const ADMIN_NAV = [
   { href: "/dashboard/admin/settings", label: "Settings", icon: Settings },
 ];
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+  const user = await getUser();
+
   return (
     <div className="flex min-h-screen">
       <aside className="hidden w-60 shrink-0 border-r border-zinc-800 bg-zinc-950 md:flex md:flex-col">
@@ -33,10 +36,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           ))}
         </nav>
         <div className="mt-auto p-4">
-          <div className="mb-4">
-            <UserButton />
-          </div>
-          <div className="text-xs text-zinc-500">
+          {user ? (
+            <form action={signOutAction}>
+              <button
+                type="submit"
+                className="w-full flex items-center gap-3 rounded-md px-4 py-3 text-base font-medium text-zinc-400 transition-all duration-200 hover:bg-zinc-900 hover:text-zinc-100"
+              >
+                <LogOut size={20} />
+                <span>Sign out</span>
+              </button>
+            </form>
+          ) : null}
+          <div className="mt-4 text-xs text-zinc-500">
             Admin Panel
           </div>
         </div>

@@ -6,7 +6,7 @@ let cached: SupabaseClient | null = null;
 /**
  * Server-only Supabase client using the service role key.
  * The service role bypasses RLS; every caller must scope queries by the
- * Clerk-authenticated user id (Clerk owns auth, Supabase owns storage).
+ * Supabase-authenticated user id.
  * Never import this module from client components.
  */
 export function serviceClient(): SupabaseClient {

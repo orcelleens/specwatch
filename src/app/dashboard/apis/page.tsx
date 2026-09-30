@@ -1,4 +1,4 @@
-import { auth } from "@clerk/nextjs/server";
+import { getUser } from "@/lib/supabase-server";
 import { Eye, EyeOff } from "lucide-react";
 import { serviceClient } from "@/modules/db/client";
 import { FREE_VENDOR_LIMIT, getPlan } from "@/modules/billing/plan";
@@ -16,14 +16,14 @@ interface VendorRow {
 export const metadata = { title: "My APIs" };
 
 export default async function ApisPage() {
-  const { userId } = await auth();
-  if (!userId) return null;
+  const user = await getUser();
+  if (!user) return null;
   const db = serviceClient();
-  const plan = await getPlan(userId);
+  const plan = await getPlan(user.id);
 
   const [{ data: vendorRows }, { data: watchRows }] = await Promise.all([
     db.from("vendors").select("id, slug, name, homepage, changelog, poll_interval_minutes").order("name"),
-    db.from("watchlist").select("vendor_id").eq("user_id", userId),
+    db.from("watchlist").select("vendor_id").eq("user_id", user.id),
   ]);
 
   const vendors = (vendorRows ?? []) as VendorRow[];

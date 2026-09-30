@@ -27,8 +27,8 @@ export default function SignUpPage() {
     if (error) {
       setError(error.message);
       setLoading(false);
-    } else if (data.user && !data.user.email_confirmed_at) {
-      // Email confirmations disabled - user is created but needs manual session
+    } else {
+      // Attempt to sign in immediately after sign up (email confirmations disabled)
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -37,13 +37,11 @@ export default function SignUpPage() {
         router.push("/dashboard");
         router.refresh();
       } else {
-        setError("Account created! Please sign in to continue.");
+        // If sign in fails unexpectedly, show error but account is created
+        console.error("Sign-in after sign-up failed:", signInError);
+        setError(`Account created! Please sign in to continue. Error: ${signInError.message}`);
         setLoading(false);
       }
-    } else if (data.user) {
-      // User confirmed, sign in automatically
-      router.push("/dashboard");
-      router.refresh();
     }
   }
 
