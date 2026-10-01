@@ -99,3 +99,6 @@ export const SEVERITY_RANK: Record<Severity, number> = {
 export function maxSeverity(a: Severity, b: Severity): Severity {
   return SEVERITY_RANK[a] <= SEVERITY_RANK[b] ? a : b;
 }
+
+export type { TreeDiff } from "./differ";
+export type { EngineDeps } from "./scheduler";

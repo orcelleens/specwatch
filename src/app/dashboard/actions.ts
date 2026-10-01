@@ -1,15 +1,14 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createSupabaseServerClient } from "@/lib/supabase-server";
+import { signOut } from "@/lib/clerk-auth";
 
 export async function refreshAction() {
   revalidatePath("/dashboard");
 }
 
 export async function signOutAction() {
-  const supabase = await createSupabaseServerClient();
-  await supabase.auth.signOut();
+  await signOut();
   revalidatePath("/", "layout");
 }
 

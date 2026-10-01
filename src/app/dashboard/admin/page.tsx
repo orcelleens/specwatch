@@ -1,4 +1,4 @@
-import { getUser } from "@/lib/supabase-server";
+import { getUser, isAdmin } from "@/lib/clerk-auth";
 import { Check, User, Calendar } from "lucide-react";
 import { serviceClient } from "@/modules/db/client";
 import { Button } from "@/components/ui/button";
@@ -27,9 +27,9 @@ export default async function AdminVendorRequestsPage() {
   const user = await getUser();
   if (!user) return null;
 
-  // Check if user is admin using environment variable
-  const isAdmin = user && process.env.ADMIN_USER_IDS?.includes(user.id);
-  if (!isAdmin) {
+  // Check if user is admin using Clerk
+  const adminCheck = await isAdmin(user.id);
+  if (!adminCheck) {
     // Not an admin, redirect to regular dashboard
     return null; // In a real app, you'd redirect to /dashboard
   }

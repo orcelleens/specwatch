@@ -53,7 +53,12 @@ export async function handleChanges(
         entries,
         permalinkBase: process.env.APP_URL ?? "https://specwatch.dev",
       });
-      await sendEmail({ to: email, subject: template.subject, html: template.html });
+      try {
+        await sendEmail({ to: email, subject: template.subject, html: template.html });
+      } catch (emailError) {
+        // Continue on email failure - don't let one failed email stop processing
+        console.warn("Failed to send email:", emailError);
+      }
     }
     if (watcher.slack_webhook_url) {
       await sendSlack(watcher.slack_webhook_url, vendor.name, changes, entries);

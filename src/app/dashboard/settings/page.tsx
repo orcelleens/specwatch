@@ -1,4 +1,4 @@
-import { getUser } from "@/lib/supabase-server";
+import { getUser } from "@/lib/clerk-auth";
 import { Check, Sparkles, TrendingUp, ArrowRight } from "lucide-react";
 import { getPlan } from "@/modules/billing/plan";
 import { portalAction, upgradeAction } from "@/modules/billing/actions";

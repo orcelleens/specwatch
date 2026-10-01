@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getUser } from "@/lib/supabase-server";
+import { getUser } from "@/lib/clerk-auth";
 import { signOutAction } from "@/app/dashboard/actions";
 import { LayoutDashboard, Boxes, Settings, Activity, LogOut } from "lucide-react";
 

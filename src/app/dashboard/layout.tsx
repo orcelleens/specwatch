@@ -1,7 +1,6 @@
 import Link from "next/link";
-import { getUser } from "@/lib/supabase-server";
+import { getUser, signOut } from "@/lib/clerk-auth";
 import { LayoutDashboard, Boxes, Settings, LogOut } from "lucide-react";
-import { signOutAction } from "./actions";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const user = await getUser();
@@ -46,7 +45,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         </nav>
         <div className="mt-auto p-3">
           {user ? (
-            <form action={signOutAction}>
+            <form action={async () => { await signOut(); }}>
               <button
                 type="submit"
                 className="w-full flex items-center gap-2.5 rounded-md px-3 py-2 text-sm text-zinc-400 transition-colors hover:bg-zinc-900 hover:text-zinc-100"

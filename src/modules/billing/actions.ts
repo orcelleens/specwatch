@@ -1,6 +1,6 @@
 "use server";
 
-import { getUser } from "@/lib/supabase-server";
+import { getUser } from "@/lib/clerk-auth";
 import { redirect } from "next/navigation";
 import { createCheckoutSession, createPortalSession } from "./polar";
 import { ensureSubscriptionRow } from "./plan";
@@ -10,7 +10,7 @@ export async function upgradeAction(formData: FormData): Promise<void> {
   if (!user) throw new Error("unauthorized");
   const plan = formData.get("plan") === "team" ? "team" : "pro";
 
-  const email = user.email;
+  const email = user.email ?? "";
 
   await ensureSubscriptionRow(user.id);
   const url = await createCheckoutSession({ userId: user.id, email, plan });

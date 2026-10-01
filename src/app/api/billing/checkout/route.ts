@@ -1,4 +1,4 @@
-import { getUser } from "@/lib/supabase-server";
+import { getUser } from "@/lib/clerk-auth";
 import { createCheckoutSession } from "@/modules/billing/polar";
 import { ensureSubscriptionRow } from "@/modules/billing/plan";
 
@@ -9,7 +9,7 @@ export async function POST(request: Request) {
   const body = (await request.json().catch(() => ({}))) as { plan?: string };
   const plan = body.plan === "team" ? "team" : "pro";
 
-  const email = user.email;
+  const email = user.email ?? "";
 
   await ensureSubscriptionRow(user.id);
   const url = await createCheckoutSession({ userId: user.id, email, plan });

@@ -1,4 +1,4 @@
-import { getUser } from "@/lib/supabase-server";
+import { getUser } from "@/lib/clerk-auth";
 import { createPortalSession } from "@/modules/billing/polar";
 
 export async function POST() {

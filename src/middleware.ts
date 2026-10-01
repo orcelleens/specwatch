@@ -1,67 +1,25 @@
-import { createServerClient, type CookieOptions } from "@supabase/ssr";
-import { NextResponse, type NextRequest } from "next/server";
+import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
 
-export async function middleware(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({
-    request,
-  });
+const isProtectedRoute = createRouteMatcher(["/dashboard(.*)", "/settings(.*)"]);
+const isAuthRoute = createRouteMatcher(["/sign-in(.*)", "/sign-up(.*)"]);
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get(name: string) {
-          return request.cookies.get(name)?.value;
-        },
-        set(name: string, value: string, options: CookieOptions) {
-          request.cookies.set({ name, value, ...options });
-          supabaseResponse = NextResponse.next({
-            request,
-          });
-          supabaseResponse.cookies.set({ name, value, ...options });
-        },
-        remove(name: string, options: CookieOptions) {
-          request.cookies.set({ name, value: "", ...options });
-          supabaseResponse = NextResponse.next({
-            request,
-          });
-          supabaseResponse.cookies.set({ name, value: "", ...options });
-        },
-      },
-    }
-  );
-
-  // Refresh session if expired - required for Server Components
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  // Protected routes that require authentication
-  const protectedPaths = ["/dashboard", "/settings"];
-  const isProtectedPath = protectedPaths.some((path) =>
-    request.nextUrl.pathname.startsWith(path)
-  );
-
-  // Redirect unauthenticated users to sign-in for protected routes
-  if (isProtectedPath && !user) {
-    const signInUrl = new URL("/sign-in", request.url);
-    signInUrl.searchParams.set("redirect_url", request.nextUrl.pathname);
-    return NextResponse.redirect(signInUrl);
-  }
+export default clerkMiddleware(async (auth, req) => {
+  const { userId } = await auth();
+  const baseUrl = new URL(req.url);
 
   // Redirect authenticated users away from auth pages
-  const authPaths = ["/sign-in", "/sign-up"];
-  const isAuthPath = authPaths.some((path) =>
-    request.nextUrl.pathname.startsWith(path)
-  );
-
-  if (isAuthPath && user) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
+  if (isAuthRoute(req) && userId) {
+    return NextResponse.redirect(new URL("/dashboard", baseUrl));
   }
 
-  return supabaseResponse;
-}
+  // Protect dashboard routes - redirect to sign-in if not authenticated
+  if (isProtectedRoute(req)) {
+    await auth.protect({
+      unauthenticatedUrl: new URL("/sign-in", baseUrl).toString(),
+    });
+  }
+});
 
 export const config = {
   matcher: [

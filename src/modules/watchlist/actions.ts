@@ -1,6 +1,6 @@
 "use server";
 
-import { getUser } from "@/lib/supabase-server";
+import { getUser } from "@/lib/clerk-auth";
 import { revalidatePath } from "next/cache";
 import { serviceClient } from "@/modules/db/client";
 import { FREE_VENDOR_LIMIT, ensureSubscriptionRow, getPlan } from "@/modules/billing/plan";

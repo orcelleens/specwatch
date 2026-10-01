@@ -1,4 +1,4 @@
-import { getUser } from "@/lib/supabase-server";
+import { getUser } from "@/lib/clerk-auth";
 import { Eye, EyeOff } from "lucide-react";
 import { serviceClient } from "@/modules/db/client";
 import { FREE_VENDOR_LIMIT, getPlan } from "@/modules/billing/plan";

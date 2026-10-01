@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getUser } from "@/lib/supabase-server";
+import { getUser } from "@/lib/clerk-auth";
 import { AlertTriangle, Plus, RefreshCw } from "lucide-react";
 import { serviceClient } from "@/modules/db/client";
 import { ensureSubscriptionRow, FREE_VENDOR_LIMIT, getPlan } from "@/modules/billing/plan";
