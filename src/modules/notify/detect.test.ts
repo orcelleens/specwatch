@@ -3,7 +3,7 @@ import { handleChanges } from "./detect";
 import type { VendorConfig, ClassifiedChange, ChangelogEntry } from "@/engine/types";
 
 // Mock the dependencies - we need to properly chain the mock
-const createChain = (resolveValue: any) => {
+const createChain = (resolveValue: unknown) => {
   const chain = {
     select: vi.fn().mockReturnThis(),
     eq: vi.fn().mockReturnThis(),
@@ -48,7 +48,6 @@ vi.mock("@/modules/notify/slack", () => ({
   sendSlack: vi.fn().mockResolvedValue(undefined),
 }));
 
-import { serviceClient } from "@/modules/db/client";
 import { getPlan } from "@/modules/billing/plan";
 import { alertEmail, sendEmail } from "@/modules/notify/email";
 import { sendSlack } from "@/modules/notify/slack";
@@ -94,7 +93,7 @@ describe("handleChanges", () => {
     mockChangesChain.in.mockResolvedValue({ error: null });
   });
 
-  const setupWatchers = (watchers: any[]) => {
+  const setupWatchers = (watchers: unknown[]) => {
     mockWatchlistChain.eq.mockResolvedValueOnce({ data: watchers, error: null });
   };
 

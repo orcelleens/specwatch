@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import type { EngineDeps, VendorConfig, PollOutcome, SnapshotMeta, ClassifiedChange, ChangelogEntry } from "./types";
+import type { EngineDeps, VendorConfig, SnapshotMeta, ClassifiedChange, ChangelogEntry, RawChange } from "./types";
 import type { EngineStore, SnapshotStorage } from "./scheduler";
 import { gzipSync } from "node:zlib";
 
@@ -93,7 +93,7 @@ function createMockDeps(overrides: Partial<EngineDeps> = {}): EngineDeps {
 
   // Create a mock classifier that uses fallback (no Groq API key needed)
   const mockClassifier = {
-    async classifyBatch(vendorName: string, batch: any[], batchOffset: number) {
+    async classifyBatch(vendorName: string, batch: RawChange[], batchOffset: number) {
       const results = new Map<number, { summary: string; impactHint: string }>();
       batch.forEach((change, index) => {
         results.set(batchOffset + index, {

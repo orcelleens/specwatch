@@ -75,7 +75,7 @@ export function createClassifier(apiKey?: string): Classifier {
           {
             role: "system",
             content:
-              "You turn OpenAPI spec diffs into plain-English developer alerts. " +
+              "You turn API spec/schema/docs diffs into plain-English developer alerts. " +
               "For each numbered change write exactly two fields: " +
               "summary — one present-tense sentence naming the API, endpoint, and field; " +
               "impactHint — one sentence starting with 'If you' telling the developer what breaks or what to check. " +

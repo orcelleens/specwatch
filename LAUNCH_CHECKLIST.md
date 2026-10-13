@@ -8,7 +8,7 @@
 - [x] Admin panel with vendor approval workflow
 - [x] AI integration guide created
 - [x] Modern UI with dark theme, orange accents
-- [x] Supabase migrations ready (5 files)
+- [x] Supabase migrations ready (6 files — apply in order; 0006 adds universal sources + private vendors)
 - [x] Vercel cron config (`vercel.json`)
 
 ## Environment Variables Needed (Production)
@@ -54,7 +54,7 @@ gh repo create specwatch --public --source=. --push
 - Go to supabase.com → New Project
 - Run migrations via SQL Editor or `supabase db push`
 - Enable RLS on all tables (migrations handle this)
-- Create Storage bucket: `spec-snapshots`
+- Storage bucket `specs` is created by migration 0001 (private)
 
 ### 3. Create Clerk App
 - dashboard.clerk.com → New Application

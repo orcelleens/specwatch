@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { diffNormalizedSpecs, coalesce, classifyTreeDiff, walkTree } from "./index";
-import type { TreeDiff, RawChange, Severity } from "../types";
+import type { TreeDiff } from "../types";
 
 describe("walkTree", () => {
   it("detects added keys", () => {

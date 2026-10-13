@@ -162,6 +162,54 @@ export function classifyTreeDiff(diff: TreeDiff): { severity: Severity; kind: st
     return { severity: "breaking", kind: "security.changed" };
   }
 
+  // --- Universal source trees (GraphQL / AsyncAPI / Postman / generic) ---
+  // GraphQL canonical tree: types.<Type>.fields.<field>.{type,args}
+  if (diff.path[0] === "types") {
+    if (diff.op === "removed") return { severity: "breaking", kind: "graphql.node.removed" };
+    if (last === "type" && diff.op === "changed") return { severity: "breaking", kind: "graphql.type.changed" };
+    if (last === "required" && diff.after === true) return { severity: "breaking", kind: "graphql.arg.required" };
+    if (diff.op === "added") return { severity: "feature", kind: "graphql.node.added" };
+    return { severity: "docs", kind: "graphql.changed" };
+  }
+
+  // Postman / universal endpoint tree: endpoints."<METHOD> <path>".
+  if (diff.path[0] === "endpoints") {
+    if (diff.op === "removed") return { severity: "breaking", kind: "endpoint.removed" };
+    if (diff.op === "added") return { severity: "feature", kind: "endpoint.added" };
+    if (last === "required" && diff.after === true) return { severity: "breaking", kind: "required.added" };
+    return { severity: "docs", kind: "endpoint.changed" };
+  }
+
+  // AsyncAPI canonical tree keeps its native roots.
+  if (diff.path[0] === "channels" || diff.path[0] === "operations") {
+    if (diff.op === "removed") return { severity: "breaking", kind: "channel.removed" };
+    if (diff.op === "added") return { severity: "feature", kind: "channel.added" };
+    return { severity: "docs", kind: "channel.changed" };
+  }
+
+  // Docs / text canonical tree: sections.<slug>.{heading,text,code}.
+  // Prose edits are docs-severity; a vanished section is flagged so a human
+  // looks (documented behaviour may have been withdrawn), but not "breaking"
+  // — no machine contract was diffed.
+  if (diff.path[0] === "sections") {
+    if (diff.op === "removed") return { severity: "deprecation", kind: "docs.section.removed" };
+    if (diff.op === "added") return { severity: "docs", kind: "docs.section.added" };
+    return { severity: "docs", kind: "docs.section.changed" };
+  }
+
+  // Generic JSON/YAML documents (niche APIs with no formal spec format):
+  // removals and type changes are treated as potentially breaking — the
+  // SpecWatch philosophy is to over-warn on disappearance, under-warn on prose.
+  if (diff.op === "removed" && diff.path.length <= 4) {
+    return { severity: "breaking", kind: "node.removed" };
+  }
+  if (last === "type" && diff.op === "changed") {
+    return { severity: "breaking", kind: "type.changed" };
+  }
+  if (diff.op === "added" && diff.path.length <= 4) {
+    return { severity: "feature", kind: "node.added" };
+  }
+
   return { severity: "docs", kind: "meta.changed" };
 }
 
@@ -180,6 +228,15 @@ export function coalesce(treeDiffs: TreeDiff[]): RawChange[] {
     } else if (diff.path[0] === "components" && diff.path.length > 4) {
       // components.schemas.{name}.* (schemas/parameters/responses)
       prefix = diff.path.slice(0, 4).join(".");
+    } else if (
+      (diff.path[0] === "types" || diff.path[0] === "channels" || diff.path[0] === "operations") &&
+      diff.path.length > 2
+    ) {
+      // GraphQL types.<Type>.* / AsyncAPI channels.<name>.*
+      prefix = diff.path.slice(0, 2).join(".");
+    } else if (diff.path[0] === "sections" || diff.path[0] === "endpoints") {
+      // Docs sections.<slug>.* / endpoints."<METHOD> <path>".*
+      prefix = diff.path.slice(0, 2).join(".");
     } else {
       prefix = diff.path.slice(0, 2).join(".");
     }

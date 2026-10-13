@@ -1,6 +1,7 @@
 import type { ChangelogConfig, ChangelogEntry } from "../types";
 import { RssAdapter } from "./rss";
 import { HtmlAdapter } from "./html";
+import { GitHubReleasesAdapter } from "./github-releases";
 import { NullAdapter } from "./null";
 
 export interface ChangelogSource {
@@ -13,6 +14,8 @@ export function createChangelogSource(config: ChangelogConfig): ChangelogSource 
       return new RssAdapter(config);
     case "html":
       return new HtmlAdapter(config);
+    case "github-releases":
+      return new GitHubReleasesAdapter(config);
     default:
       return new NullAdapter();
   }

@@ -14,7 +14,10 @@ interface VendorRow {
   slug: string;
   name: string;
   spec_url: string;
-  spec_format: "openapi3" | "swagger2";
+  spec_format: VendorConfig["specFormat"];
+  source_kind?: VendorConfig["sourceKind"];
+  visibility?: "public" | "private";
+  owner_user_id?: string | null;
   changelog: VendorConfig["changelog"];
   poll_interval_minutes: number;
   poll_offset_minutes: number;
@@ -45,6 +48,9 @@ export class SupabaseStore implements EngineStore {
       name: row.name,
       specUrl: row.spec_url,
       specFormat: row.spec_format,
+      sourceKind: row.source_kind,
+      visibility: row.visibility,
+      ownerUserId: row.owner_user_id,
       changelog: row.changelog,
       pollIntervalMinutes: row.poll_interval_minutes,
       pollOffsetMinutes: row.poll_offset_minutes,

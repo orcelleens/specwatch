@@ -351,3 +351,19 @@ Planned metrics collection:
 - GitHub Actions workflow runs on every push/PR
 - Includes type checking, linting, and full test suite
 - Reports coverage and enforces quality gates
+## Universal Source Support (2026-10-13)
+
+- **Detection**: `detectSourceKind(raw, hint?)` in `normalizer.ts` classifies
+  every fetched body (HTML → docs; `openapi`/`swagger` keys → openapi;
+  `asyncapi` key → asyncapi; Postman `info.schema` → postman;
+  `__schema` → graphql; other structured → json; GraphQL SDL regex → graphql;
+  else text). The stored vendor kind is only a hint.
+- **Canonical trees**: GraphQL → `{types}`; Postman → `{endpoints}`;
+  docs/text → `{sections}`; AsyncAPI/generic JSON keep native shape.
+- **Severity**: GraphQL/endpoint/channel removals and type changes are
+  breaking; docs prose is `docs`, section removal is `deprecation`;
+  generic-JSON key removal (depth ≤ 4) is breaking.
+- **Discovery**: `engine/probe.ts` (`probeBody`, `probeUrl`, `discoverSource`,
+  `candidateSourceUrls`) with an injectable fetcher.
+- **Changelog**: new `github-releases` adapter.
+- Tests: `src/engine/universal.test.ts` (offline, fixture-based).

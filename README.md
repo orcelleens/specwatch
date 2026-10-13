@@ -1,10 +1,13 @@
 # SpecWatch
 
-**Know before it breaks.** SpecWatch continuously polls the public OpenAPI specs of the APIs
-developers depend on (Stripe, GitHub, OpenAI, …), deep-diffs each new snapshot against the last
-known-good one, classifies every change by severity with deterministic rules, translates it to
-plain English with an LLM, and alerts watchers by email and Slack — within minutes of the
-vendor publishing.
+**Know before it breaks.** SpecWatch continuously polls the public specs, schemas, and docs
+of the APIs developers depend on (Stripe, GitHub, OpenAI, … and any niche API you add
+yourself), deep-diffs each new snapshot against the last known-good one, classifies every
+change by severity with deterministic rules, translates it to plain English with an LLM, and
+alerts watchers by email and Slack — within minutes of the vendor publishing.
+
+> **New here?** `HANDOFF.md` is the current state + roadmap. `AGENTS.md` is how to work on
+> this repo. `SIGNAL.md` is why it exists.
 
 Built for the "Self-Maintaining APIs" problem in [YC's Requests for Startups](https://www.ycombinator.com/rfs).
 Solo-run by design: ~$20/mo infra, no queue service, no vendor cooperation required.
@@ -41,6 +44,30 @@ Vercel Cron (every 10 min) ──▶ /api/cron/tick
 - **Prune**: `/api/cron/prune`, nightly — snapshots older than 90 days are removed except the
   newest parseable baseline per vendor. Change rows survive (FKs are ON DELETE SET NULL), so
   public permalinks never die.
+
+## Universal sources — any API can be watched
+
+Detection (in the engine) is authoritative; paste a URL and SpecWatch figures out what it is:
+
+| Source kind | What is watched | Breaking means |
+|---|---|---|
+| `openapi` | OpenAPI 3 / Swagger 2 (JSON/YAML), $refs bundled | removed endpoint, newly-required param, type change |
+| `graphql` | GraphQL SDL file or introspection JSON | removed type/field, field type change |
+| `asyncapi` | AsyncAPI document | removed channel/operation |
+| `postman` | Postman Collection v2 | removed endpoint |
+| `json` | any other JSON/YAML (a niche API's schema/config) | removed key, type change |
+| `docs` | an HTML documentation page (section diff) | — (section removal flags for review; prose is never "breaking") |
+| `text` | plain text / Markdown (section diff) | — (same as docs) |
+
+Changelog adapters: `rss`, `html` (CSS selectors), `github-releases` (`owner/repo` — often
+the only changelog a niche API has), `none`.
+
+**Adding an API**: users paste any spec/docs/homepage URL in Dashboard → My APIs ("Add any
+API"). SpecWatch probes the URL and its well-known spec locations (`/openapi.json`,
+`/swagger.json`, `/schema.graphql`, …) and falls back to watching the docs page itself.
+The result is a *private* vendor owned by that user (migration `0006`); promoting it to the
+public catalog is an explicit admin act. Catalog vendors are still added by SQL insert —
+no code changes.
 
 ## Architecture (module boundaries)
 
@@ -121,7 +148,7 @@ npm run dev
 - **No emails arriving**: verify Resend domain, `ALERT_FROM_EMAIL`, and that the user is on a
   paid plan (free gets the weekly digest only).
 - **Manual tick**: `curl -X POST https://<domain>/api/cron/tick -H "Authorization: Bearer $CRON_SECRET"`.
-- **Adding a vendor**: INSERT into `vendors` (slug, spec_url, format, changelog jsonb, interval,
+- **Adding a vendor**: INSERT into `vendors` (slug, spec_url, spec_format/source_kind, changelog jsonb, interval,
   offset). No code changes. Poll cadence must respect the vendor's published rate guidance.
 
 ## Costs (steady state)
