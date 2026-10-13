@@ -112,3 +112,14 @@ Deployed to Vercel with:
 - Cron jobs for scheduled polling (via Vercel Cron)
 - Static site generation for marketing pages
 - Environment variables managed through Vercel dashboard
+## Universal Sources (2026-10-13)
+
+The engine no longer assumes OpenAPI. `src/engine/normalizer.ts` detects the
+source kind (`openapi | graphql | asyncapi | postman | docs | json | text`)
+and converts every source to a canonical tree the differ understands;
+`src/engine/probe.ts` discovers the best watchable source from any URL
+(spec → well-known locations → docs page fallback). Users can add private
+custom APIs (`src/modules/vendors/`, migration `0006_universal_sources.sql`)
+that are polled exactly like catalog vendors but never exposed publicly.
+Changelog adapters now include `github-releases`. See `HANDOFF.md` for the
+full change log, decisions, and next steps.

@@ -35,11 +35,20 @@ const OLD_WAY = [
   },
 ];
 
+const SOURCE_KINDS = [
+  { kind: "OpenAPI / Swagger", signal: "Removed endpoint or newly-required parameter = breaking. The classic spec diff, $refs resolved.", strength: "Strongest" },
+  { kind: "GraphQL", signal: "SDL or introspection JSON. Removed type/field or a changed field type = breaking.", strength: "Strongest" },
+  { kind: "AsyncAPI", signal: "Event contracts. Removed channel or operation = breaking.", strength: "Strongest" },
+  { kind: "Postman Collections", signal: "Endpoint inventory from the collection your vendor already publishes.", strength: "Strong" },
+  { kind: "Generic JSON / YAML", signal: "A niche API's JSON schema or config. Disappearing keys = potentially breaking.", strength: "Strong" },
+  { kind: "Docs-only APIs", signal: "No spec? We diff the documentation by section. Weaker than a spec — never no signal.", strength: "Baseline" },
+];
+
 const ENGINE_STEPS = [
   {
     icon: Eye,
     title: "Watch",
-    body: "We poll the public OpenAPI spec of every API you watch, every 10 minutes, with conditional requests. No vendor cooperation needed.",
+    body: "We poll the public spec, schema, or docs of every API you watch, every 10 minutes, with conditional requests. No vendor cooperation needed.",
   },
   {
     icon: FileDiff,
@@ -130,9 +139,9 @@ export default function LandingPage() {
             it <span className="text-orange-400">breaks.</span>
           </h1>
           <p className="mt-6 max-w-lg text-base leading-relaxed text-zinc-400 sm:text-lg">
-            The APIs you build on change without asking you. SpecWatch watches their OpenAPI
-            specs continuously and tells you — in plain English — the moment a change will
-            break your code. Not a 500 at 2 a.m. A heads-up in minutes.
+            The APIs you build on change without asking you. SpecWatch watches their specs,
+            schemas, and docs continuously and tells you — in plain English — the moment a
+            change will break your code. Not a 500 at 2 a.m. A heads-up in minutes.
           </p>
           <div className="mt-8 flex flex-wrap items-center gap-4">
             <Link
@@ -251,11 +260,38 @@ export default function LandingPage() {
           </div>
           <p className="mt-8 text-sm text-zinc-500">
             Missing an API?{" "}
-            <Link href="/dashboard/settings" className="text-orange-400 underline underline-offset-2 hover:text-orange-300">
-              Request it
+            <Link href="/dashboard/apis" className="text-orange-400 underline underline-offset-2 hover:text-orange-300">
+              Add it yourself
             </Link>{" "}
-            — if it publishes an OpenAPI spec, it can be watched. No vendor cooperation required.
+            — paste any spec, schema, docs page, or homepage. If it publishes anything readable,
+            it can be watched. No vendor cooperation required.
           </p>
+        </div>
+      </section>
+
+      {/* Act 4b — any API, not just OpenAPI */}
+      <section className="relative border-t border-zinc-900 bg-zinc-950/80">
+        <div className="mx-auto w-full max-w-6xl px-6 py-24">
+          <p className="font-mono text-xs uppercase tracking-[0.2em] text-zinc-600">Any API</p>
+          <h2 className="mt-3 max-w-2xl text-2xl font-bold tracking-tight sm:text-3xl">
+            Supabase to the niche API only you use.
+          </h2>
+          <p className="mt-4 max-w-2xl text-sm leading-relaxed text-zinc-400">
+            Most APIs you depend on will never publish a perfect OpenAPI spec. So SpecWatch
+            watches whatever they <em>do</em> publish — and if that is only documentation,
+            it watches the docs. Paste a URL and it detects the format itself.
+          </p>
+          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {SOURCE_KINDS.map((s) => (
+              <div key={s.kind} className="rounded-lg border border-zinc-800 bg-zinc-900/40 p-5">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-semibold text-zinc-100">{s.kind}</h3>
+                  <span className="rounded-full border border-orange-800/60 px-2 py-0.5 text-[10px] font-medium text-orange-300">{s.strength}</span>
+                </div>
+                <p className="mt-2 text-xs leading-relaxed text-zinc-500">{s.signal}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 

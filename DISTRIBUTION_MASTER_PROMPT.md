@@ -10,8 +10,9 @@ claim you post must be verifiable on the live product (the public feed is the pr
 
 ## 2. Product Value Proposition & Viral Hook
 
-- **The core hook**: Dependabot, but for the APIs you call — we watch vendors' OpenAPI specs
-  and tell you, in plain English, the moment a change will break your code.
+- **The core hook**: Dependabot, but for the APIs you call — we watch vendors' specs, schemas,
+  and docs (OpenAPI, GraphQL, AsyncAPI, Postman, or docs-only) and tell you, in plain English,
+  the moment a change will break your code. Any API can be added by pasting a URL.
 - **Target audience (ICP)**: indie devs and small teams (1–15) shipping on Stripe, OpenAI,
   GitHub, Twilio, Slack, Supabase, Cloudflare, Square, Plaid. They have been burned by a
   silent API change, they hang out on HN, r/webdev, r/SideProject, r/devops, X dev circles,
@@ -54,8 +55,8 @@ claim you post must be verifiable on the live product (the public feed is the pr
 > users get, so you can evaluate it before signing up.
 >
 > Nine APIs are watched from day one: Stripe, GitHub, OpenAI, Twilio, Slack, Supabase,
-> Cloudflare, Square, Plaid. If yours is missing, there's a request form — if it has a
-> published OpenAPI spec, it can be watched.
+> Cloudflare, Square, Plaid. If yours is missing, paste its spec, schema, docs, or homepage
+> URL and watch it yourself in a minute — even docs-only niche APIs can be watched.
 >
 > Known limits, stated plainly: alerts are within-minutes, not instant (10-minute poll
 > cadence); specs that describe an API incompletely will produce incomplete diffs; and

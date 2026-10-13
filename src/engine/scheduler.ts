@@ -258,7 +258,10 @@ export async function ingestVendor(
       logger.debug("Found previous snapshot, computing diff", { vendorId: vendor.id, previousSnapshotId: prev.id });
       try {
         const prevRaw = gunzipSync(await deps.storage.get(prev.storagePath)).toString("utf8");
-        const prevNormalized = await normalizeSpec(prevRaw);
+        const prevNormalized = await normalizeSpec(prevRaw, {
+          sourceKind: vendor.sourceKind,
+          specFormat: vendor.specFormat,
+        });
         fromSnapshotId = prev.id;
         rawChanges = diffNormalizedSpecs(prevNormalized.tree, normalized.tree);
         logger.debug("Computed diff", { vendorId: vendor.id, changeCount: rawChanges.length });
@@ -274,16 +277,26 @@ export async function ingestVendor(
     // --- LLM prose within the monthly budget, template fallback for the rest ---
     const batches = chunk(rawChanges, CHANGES_PER_LLM_CALL);
     logger.debug("Batching changes for LLM processing", { vendorId: vendor.id, totalChanges: rawChanges.length, batchCount: batches.length, batchSize: CHANGES_PER_LLM_CALL });
-    const classifier = deps.classifier ?? createClassifier();
+    // Lazy classifier: constructing the Groq client throws without an API
+    // key, and the template fallback must work keyless (smoke tests, self-hosters).
+    let classifier: Classifier | undefined = deps.classifier;
+    if (!classifier && batches.length > 0) {
+      try {
+        classifier = createClassifier();
+      } catch (err) {
+        logger.warn("LLM classifier unavailable, using fallback summaries", { vendorId: vendor.id, error: describeError(err) });
+        classifier = undefined;
+      }
+    }
     const grantedBatches =
-      batches.length > 0 && deps.classifier
+      batches.length > 0 && classifier
         ? await deps.store.reserveLlmCalls(vendor.id, batches.length, 40)
         : 0;
     logger.debug("Reserved LLM batches", { vendorId: vendor.id, grantedBatches, totalBatches: batches.length });
 
     const summaries = new Map<number, { summary: string; impactHint: string }>();
     for (let i = 0; i < batches.length; i++) {
-      if (i < grantedBatches) {
+      if (i < grantedBatches && classifier) {
         try {
           logger.debug("Classifying batch with LLM", { vendorId: vendor.id, batchIndex: i, batchSize: batches[i].length });
           const result = await classifier.classifyBatch(

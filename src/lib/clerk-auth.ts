@@ -21,8 +21,6 @@ export async function getUser() {
 }
 
 export async function isAdmin(userId: string): Promise<boolean> {
-  const client = await clerkClient();
-  const user = await client.users.getUser(userId);
   const adminIds = process.env.ADMIN_USER_IDS?.split(",") ?? [];
   return adminIds.includes(userId);
 }

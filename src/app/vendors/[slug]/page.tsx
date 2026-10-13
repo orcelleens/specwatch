@@ -53,6 +53,7 @@ export default async function VendorPage({
     .from("vendors")
     .select("id, slug, name, homepage, poll_interval_minutes, next_poll_at, last_error, status")
     .eq("slug", slug)
+    .eq("visibility", "public")
     .maybeSingle();
   if (!vendorData) notFound();
   const vendor = vendorData as VendorRow;
@@ -80,7 +81,7 @@ export default async function VendorPage({
       <header className="mb-10">
         <h1 className="text-3xl font-bold tracking-tight">{vendor.name} API changes</h1>
         <p className="mt-2 max-w-xl text-sm text-zinc-500">
-          The {vendor.name} OpenAPI spec is polled every {vendor.poll_interval_minutes} minutes.
+          The {vendor.name} API source is polled every {vendor.poll_interval_minutes} minutes.
           Every detected change, translated to plain English.
         </p>
         {vendor.last_error ? (

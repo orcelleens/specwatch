@@ -36,3 +36,14 @@
 - **Launch**: Show HN ("Dependabot for hosted APIs"), Product Hunt, r/devops + r/SideProject + Indie Hackers, X dev-tool community.
 - **SEO**: public change-permalink pages per vendor+date (long-tail: "did stripe api change today").
 - **Retention loop**: the weekly digest email is the habit-former for free users; severity-based upgrade prompts when a breaking change hits a free user's watched vendor.
+
+## 7. Addendum (2026-10-13) — universal widening
+
+The v1 wedge assumed a published OpenAPI spec. Field reality: most long-tail
+APIs publish *something* — a GraphQL schema, a Postman collection, a JSON
+schema, SDK release notes, or only docs. SpecWatch now watches all of it
+(detection + discovery in the engine; private custom APIs in the app), which
+widens the ICP from "teams on spec-publishing vendors" to "any team on any
+API, from Supabase to very niche", with an honest signal-strength ladder
+(spec > schema > docs). The hook, pricing, and MLUP loop above are unchanged;
+docs-only watching is the floor, never the pitch. Detail: `HANDOFF.md`.
